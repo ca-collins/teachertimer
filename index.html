@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Teacher Timer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+    <script type="text/javascript" src="assets/js/script.js"></script>
+    <script type="text/javascript" src="assets/js/lib/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="assets/js/lib/paper-full.js"></script>
+    <script type="text/javascript" src="assets/js/lib/howler.js"></script>
+  </head>
+  <body>
+    <div id="canvas-wrap">
+      <div id="overlay">
+        <p id="timer">0h 0m 0s</p>
+
+        <div id="buttons">
+          <button type="button" min="0" name="button" id="startBtn"><i class="fas fa-play"></i></button>
+          <button type="button" name="button" id="resetBtn"><i class="fas fa-redo-alt"></i></button>
+        </div>
+
+        <div id="inputs">
+          <input type="number" min="0" id="hrInput" placeholder="HR" value="">
+          <input type="number" min="0" id="mnInput" placeholder="MIN" value="">
+          <input type="number" min="0" id="scInput" placeholder="SEC" value="">
+        </div>
+      </div>
+
+      <canvas id="myCanvas" width="2000" height="1000"></canvas>
+    </div>
+
+
+
+  <script type="text/paperscript" canvas="myCanvas">
+
+    var circles = [];
+
+    // Preload Howl objects
+    var sounds = ['assets/sounds/bubbles', 'assets/sounds/clay', 'assets/sounds/confetti', 'assets/sounds/corona', 'assets/sounds/dotted-spiral', 'assets/sounds/flash-1'];
+    var howls = {};
+    for (var i=0; i<sounds.length; i++) {
+        howls[sounds[i]] = new Howl({
+            src: [sounds[i] + '.mp3']
+        });
+    }
+
+    $("#resetBtn").on("click", function () {
+      $("#hrInput").val("");
+      $("#mnInput").val("");
+      $("#scInput").val("");
+      document.getElementById("timer").innerHTML = "0h 0m 0s";
+    });
+
+    $("#startBtn").on("click", function () {
+      //Define the time in each timer input
+      var hrInputVal = document.querySelector("#hrInput").value;
+      var mnInputVal = document.querySelector("#mnInput").value;
+      var scInputVal = document.querySelector("#scInput").value;
+      $("#hrInput").val("");
+      $("#mnInput").val("");
+      $("#scInput").val("");
+
+      // If no time is entered (or time entered is <=0), alert
+      if (hrInputVal + mnInputVal + scInputVal <= 0){
+        $("#timer").html("<span class='alert'>Time must be >=1 second!</span>");
+      }
+
+      // Else init timer
+      else {
+        $(this).addClass("started");
+        //Define the time in each timer input in milliseconds
+        var hrInputValMs = hrInputVal * (60 * 60 * 1000);
+        var mnInputValMs = mnInputVal * (60 * 1000);
+        var scInputValMs = scInputVal * 1000;
+
+        //Adds each time input in millisecnds together to get time to countdown from.
+        var setTimeMs = hrInputValMs + mnInputValMs + scInputValMs;
+
+        // sets timer display to input start time
+        $("#timer").text(hrInputVal + "h " + mnInputVal + "m " + scInputVal + "s ");
+
+        // Defines the time at which the start button was clicked
+        var startTime = Date.now();
+
+        // Every second...
+
+        var timer = setInterval(function(event) {
+          $("#startBtn").prop('disabled', true);
+
+          var currentTime = Date.now();
+          var elapsedTime = currentTime - startTime;
+          var timeLeftMs = setTimeMs-elapsedTime;
+
+          var hrLeft = Math.floor((timeLeftMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          var mnLeft = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
+          var scLeft = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
+
+          document.getElementById("timer").innerHTML = hrLeft + "h "
+          + mnLeft + "m " + scLeft + "s ";
+
+
+          var maxPoint = new Point(view.size.width, view.size.height);
+          var randomPoint = Point.random();
+          var point = maxPoint * randomPoint;
+          var newCircle = new Path.Circle(point, 500);
+          newCircle.fillColor = "red";
+          circles.push(newCircle);
+
+          // Select a random sound and play it
+          var sounds = ['assets/sounds/bubbles', 'assets/sounds/clay', 'assets/sounds/confetti', 'assets/sounds/corona', 'assets/sounds/dotted-spiral', 'assets/sounds/flash-1'];
+          var soundFile = sounds[Math.floor(Math.random() * sounds.length)];
+
+          howls[soundFile].play();
+
+          $("#resetBtn").on("click", function () {
+            clearInterval(timer);
+            document.getElementById("timer").innerHTML = "0h 0m 0s";
+            $("#startBtn").prop('disabled', false);
+            $("#startBtn").removeClass("started");
+          });
+
+          if (timeLeftMs <= 0) {
+            document.getElementById("timer").innerHTML = "TIME'S UP!!!";
+            clearInterval(timer);
+            $("#startBtn").prop('disabled', false);
+          };
+        }, 500);
+      };
+    });
+
+    function onFrame(event){
+      for(var i = 0; i < circles.length; i++) {
+        // circles[i].fillColor = rgb
+        circles[i].fillColor.hue +=1;
+        circles[i].scale(.9);
+        if(circles[i].area < 1){
+          circles[i].remove(); // remove the circle from the canvas
+          circles.splice(i, 1); // remove the circle from the array
+          console.log(circles);
+        }
+      };
+    };
+
+  </script>
+
+  </body>
+</html>
