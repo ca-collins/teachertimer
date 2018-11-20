@@ -120,12 +120,14 @@
           $("#resetBtn").on("click", function () {
             clearInterval(timer);
             document.getElementById("timer").innerHTML = "0h 0m 0s";
+            document.getElementById("timer-title").innerHTML = "0h 0m 0s";
             $("#startBtn").prop('disabled', false);
             $("#startBtn").removeClass("started");
           });
 
           if (timeLeftMs <= 0) {
             document.getElementById("timer").innerHTML = "TIME'S UP!!!";
+            document.getElementById("timer-title").innerHTML = "TIME'S UP!!!";
             clearInterval(timer);
             $("#startBtn").prop('disabled', false);
           };
